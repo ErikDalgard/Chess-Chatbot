@@ -17,7 +17,7 @@ docker compose up --build
 ### Run chatbot
 
 ```bash
-docker compose exec jupyter python /home/jovyan/work/app.py
+docker compose exec jupyter python /home/jovyan/work/chatbot.py
 ```
 
 Then open:
