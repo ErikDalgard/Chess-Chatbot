@@ -4,6 +4,7 @@ from google import genai
 import gradio as gr
 from collections import defaultdict
 import json
+from analyze_fen import analyze_fen, confirm_fen
 
 
 #Setting up model
