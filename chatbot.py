@@ -4,13 +4,14 @@ from google import genai
 import gradio as gr
 from collections import defaultdict
 import json
-
+from board_reader import read_board, check_reading
+from fen_converter import board_to_fen
 
 #Setting up model
 API_KEY = os.environ["GEMINI_API_KEY"]
 
 client = genai.Client(api_key=API_KEY)
-default_model = "gemini-3.1-flash-lite"
+default_model = "gemini-3.5-flash"
 
 
 #System instrictuins
@@ -74,9 +75,12 @@ def input2output(inputs, history, request:gr.Request):
         )
         problems = check_reading(reading)
 
-        reply = f"```json\n{reading.model_dump_json(indent=2)}\n```"
         if problems:
-            reply += "\n\n**Warnings:**\n" + "\n".join(f"- {p}" for p in problems)
+            reply = "I couldn't read the board reliably:\n" + "\n".join(f"- {p}" for p in problems)
+        else:
+            fen = board_to_fen(reading)
+            print(fen)
+            reply = f"Position (FEN):\n```\n{fen}\n```"
 
         yield reply
         return
@@ -130,5 +134,6 @@ with gr.Blocks() as demo:
                             ],
 
                     )
+
 demo.launch(server_name="0.0.0.0", server_port=7860, theme=gr.themes.Soft())
 # demo.launch(theme=gr.themes.Soft())
