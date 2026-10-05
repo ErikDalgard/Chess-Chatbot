@@ -6,7 +6,8 @@ from collections import defaultdict
 import json
 from board_reader import read_board, check_reading
 from fen_converter import board_to_fen
-
+from dotenv import load_dotenv
+load_dotenv() 
 #Setting up model
 API_KEY = os.environ["GEMINI_API_KEY"]
 
