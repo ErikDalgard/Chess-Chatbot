@@ -5,13 +5,11 @@ deterministic function can convert it into a FEN string.
 """
 
 from enum import Enum
-from pathlib import Path
 from typing import Optional
 
 from google import genai
-from google.genai import types
 from pydantic import BaseModel, Field
-
+from models.interface import Model
 
 # ---------------------------------------------------------------------------
 # Schema
@@ -101,17 +99,8 @@ You read chess positions and report exactly where every piece is.
 # Function
 # ---------------------------------------------------------------------------
 
-_MIME_TYPES = {
-    ".png": "image/png",
-    ".jpg": "image/jpeg",
-    ".jpeg": "image/jpeg",
-    ".webp": "image/webp",
-}
-
-
 def read_board(
-    client: genai.Client,
-    model: str,
+    model: Model,
     image_path: Optional[str] = None,
     text: Optional[str] = None,
 ) -> BoardReading:
@@ -124,30 +113,7 @@ def read_board(
     if image_path is None and text is None:
         raise ValueError("Provide image_path, text, or both.")
 
-    contents: list = []
-
-    if image_path is not None:
-        path = Path(image_path)
-        mime_type = _MIME_TYPES.get(path.suffix.lower())
-        if mime_type is None:
-            raise ValueError(f"Unsupported image type: {path.suffix}")
-        contents.append(
-            types.Part.from_bytes(data=path.read_bytes(), mime_type=mime_type)
-        )
-
-    contents.append(text or "Read the chess position in this image.")
-
-    response = client.models.generate_content(
-        model=model,
-        contents=contents,
-        config=types.GenerateContentConfig(
-            system_instruction=BOARD_READER_INSTRUCTIONS,
-            response_mime_type="application/json",
-            response_json_schema=BoardReading.model_json_schema(),
-        ),
-    )
-
-    return BoardReading.model_validate_json(response.text)
+    return model.parse_image(image_path, BoardReading, prompt=text, instructions=BOARD_READER_INSTRUCTIONS)
 
 
 def check_reading(reading: BoardReading) -> list[str]:
