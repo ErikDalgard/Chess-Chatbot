@@ -90,8 +90,6 @@ def input2output(inputs, history, request:gr.Request):
         yield event
     
 
-
-
 #Running UI
 with gr.Blocks() as demo:
     gr.ChatInterface(input2output, 
