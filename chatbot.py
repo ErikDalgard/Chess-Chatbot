@@ -6,13 +6,12 @@ from collections import defaultdict
 import json
 from board_reader import read_board, check_reading
 from fen_converter import board_to_fen
+from models.factory import create_model
+
+
 
 #Setting up model
-API_KEY = os.environ["GEMINI_API_KEY"]
-
-client = genai.Client(api_key=API_KEY)
-default_model = "gemini-3.5-flash"
-
+model = create_model()
 
 #System instrictuins
 # System instructions
@@ -48,8 +47,7 @@ General:
   back to chess.
 """
 
-#Chat history
-chats = defaultdict(lambda: None)
+
 
 IMAGE_EXTENSIONS = (".png", ".jpg", ".jpeg", ".webp")
 
@@ -68,8 +66,7 @@ def input2output(inputs, history, request:gr.Request):
 
     if image_paths:
         reading = read_board(
-            client,
-            default_model,
+            model,
             image_path=image_paths[0],
             text=text or None,
         )
@@ -88,40 +85,10 @@ def input2output(inputs, history, request:gr.Request):
     if not text.strip():
         yield "Type a message or upload a chess board image."
         return
-
-    session_id = request.session_hash
-    extra = {}
-    if chats[session_id]:
-        extra["previous_interaction_id"] = chats[session_id]
-
-    #Streaming the response
-    stream = client.interactions.create(
-        model=default_model,
-        system_instruction=SYSTEM_INSTRUCTIONS,
-        input=text,
-        stream=True,
-        **extra,
-    )
-
-    answer = ""
+    stream = model.stream(instructions=SYSTEM_INSTRUCTIONS, input_text=text, session_id=request.session_hash)
     for event in stream:
-        if event.event_type == "interaction.created":
-            chats[session_id] = event.interaction.id
-        elif event.event_type == "step.delta" and getattr(event.delta, "type", None) == "text":
-            answer += event.delta.text
-            yield answer
-#    stream_input = ""
-
-
-
-    #Streaming the response
-   # stream = client.interactions.create(
-      #  model = default_model,
-      #  system_instruction=SYSTEM_INSTRUCTIONS,
-      #  input=stream_input,
-      #  stream=True
-#    )
-
+        yield event
+    
 
 #Running UI
 with gr.Blocks() as demo:
@@ -137,3 +104,4 @@ with gr.Blocks() as demo:
 
 demo.launch(server_name="0.0.0.0", server_port=7860, theme=gr.themes.Soft())
 # demo.launch(theme=gr.themes.Soft())
+#demo.launch(debug=True, share=False, inline=True, debug=True)

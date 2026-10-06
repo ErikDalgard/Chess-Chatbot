@@ -1,0 +1,27 @@
+[project]
+name = "chess-chatbot"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Lukas Ullenhag", email = "204844831+LukasUllenhag@users.noreply.github.com" }
+]
+requires-python = ">=3.14"
+dependencies = [
+    "google-genai==2.22.0",
+    "gradio==6.26.0",
+    "ipykernel==7.3.0",
+    "langchain==1.4.0",
+    "langchain-google-genai==4.4.0",
+    "openai>=3.24.0",
+    "pillow==12.3.0",
+    "python-chess==1.999",
+    "python-dotenv>=1.2.4",
+]
+
+[project.scripts]
+chess-chatbot = "chess_chatbot:main"
+
+[build-system]
+requires = ["uv_build>=0.12.19,<0.13.0"]
+build-backend = "uv_build"
