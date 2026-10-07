@@ -1,52 +1,14 @@
 #Importing packages
-import os
-from google import genai
 import gradio as gr
-from collections import defaultdict
-import json
-from board_reader import read_board, check_reading
-from fen_converter import board_to_fen
+from chess_analysis import ChessAnalysis, corrected_turn
+from chess_instructions import SYSTEM_INSTRUCTIONS
 from models.factory import create_model
 
 
 
 #Setting up model
 model = create_model()
-
-#System instrictuins
-# System instructions
-SYSTEM_INSTRUCTIONS = """
-You are a friendly and knowledgeable chess assistant. You can play chess
-against the user, analyze positions, explain openings and strategy, and
-help players improve.
-
-When playing a game:
-- Ask the user which color they want if they haven't said.
-- Use standard algebraic notation (e.g. e4, Nf3, O-O, exd5, e8=Q).
-- Keep careful track of the position. Before each move, mentally replay
-  the move list so far and make sure your move is legal.
-- State your move clearly on its own line, like: "My move: Nf6".
-- If the user makes an illegal or unclear move, explain why politely and
-  ask them to try again.
-- Announce check, checkmate, stalemate, and draws when they happen.
-- After your move, add one short sentence about the idea behind it,
-  unless the user asks you to stay silent.
-
-When analyzing or teaching:
-- Adjust your explanations to the user's level. Assume a beginner unless
-  they show otherwise.
-- Explain the "why" behind moves: piece activity, king safety, pawn
-  structure, tactics, and plans.
-- If the user gives a FEN or PGN, use it as the exact position.
-- Be honest when a position is complicated or you are unsure. Never
-  invent evaluations or claim certainty you don't have.
-
-General:
-- Keep answers concise and conversational.
-- Stay focused on chess. If asked about unrelated topics, gently steer
-  back to chess.
-"""
-
+chess_analysis = ChessAnalysis(model)
 
 
 IMAGE_EXTENSIONS = (".png", ".jpg", ".jpeg", ".webp")
@@ -65,23 +27,21 @@ def input2output(inputs, history, request:gr.Request):
     image_paths = [p for p in image_paths if p.lower().endswith(IMAGE_EXTENSIONS)]
 
     if image_paths:
-        reading = read_board(
-            model,
-            image_path=image_paths[0],
-            text=text or None,
+        yield from chess_analysis.analyze_image(
+            image_paths[0], text, request.session_hash
         )
-        problems = check_reading(reading)
-
-        if problems:
-            reply = "I couldn't read the board reliably:\n" + "\n".join(f"- {p}" for p in problems)
-        else:
-            fen = board_to_fen(reading)
-            print(fen)
-            reply = f"Position (FEN):\n```\n{fen}\n```"
-
-        yield reply
         return
-        # Normal chat
+
+    if request.session_hash in chess_analysis.pending_boards:
+        yield from chess_analysis.confirm_board(text, request.session_hash)
+        return
+
+    side = corrected_turn(text)
+    if side is not None:
+        yield from chess_analysis.correct_side(side, request.session_hash)
+        return
+
+    # Normal chat
     if not text.strip():
         yield "Type a message or upload a chess board image."
         return
@@ -102,6 +62,5 @@ with gr.Blocks() as demo:
 
                     )
 
-demo.launch(server_name="0.0.0.0", server_port=7860, theme=gr.themes.Soft())
-# demo.launch(theme=gr.themes.Soft())
-#demo.launch(debug=True, share=False, inline=True, debug=True)
+if __name__ == "__main__":
+    demo.launch(server_name="0.0.0.0", server_port=7860, theme=gr.themes.Soft())
