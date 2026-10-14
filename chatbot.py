@@ -3,7 +3,7 @@ import gradio as gr
 from chess_analysis import ChessAnalysis, corrected_turn
 from chess_instructions import SYSTEM_INSTRUCTIONS
 from models.factory import create_model
-
+from puzzle.puzzle_assistant import PuzzleAssistant
 
 
 #Setting up model
@@ -13,6 +13,8 @@ chess_analysis = ChessAnalysis(model)
 
 IMAGE_EXTENSIONS = (".png", ".jpg", ".jpeg", ".webp")
 
+puzzle_assistant = PuzzleAssistant(model)
+# puzzle_assistant.test()
 
 #UI input function
 def input2output(inputs, history, request:gr.Request):
@@ -25,7 +27,12 @@ def input2output(inputs, history, request:gr.Request):
         for f in files
     ]
     image_paths = [p for p in image_paths if p.lower().endswith(IMAGE_EXTENSIONS)]
+    
+    stream = puzzle_assistant.input2output(text, image_paths, request.session_hash)
 
+    for event in stream:
+        yield event
+    return
     if image_paths:
         yield from chess_analysis.analyze_image(
             image_paths[0], text, request.session_hash

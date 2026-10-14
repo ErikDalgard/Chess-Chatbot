@@ -7,6 +7,7 @@ from collections import defaultdict
 class Puzzles:
     def __init__(self, n_puzzles):
         self.puzzles_by_rating = self.load_puzzles_by_rating(n_puzzles)
+
     def load_puzzles(self, n_puzzles):
         puzzles = []
         max_iterations = 100000
@@ -30,6 +31,7 @@ class Puzzles:
                         "popularity": int(row["Popularity"]),
                         "themes": row["Themes"].split(),
                     }
+
                     if index < n_puzzles:
                         puzzles.append(item)
                     else:
@@ -50,17 +52,22 @@ class Puzzles:
             puzzles_by_rating[bucket].append(puzzle)
         return puzzles_by_rating
 
+    # Retrieves the most popular one-move puzzle with rating [rating_lower_bound, rating_upper_bound+99)
     def retrieve_puzzle(self, rating_lower_bound, rating_upper_bound, theme):
         candidates = []
         for rating, puzzles in self.puzzles_by_rating.items():
             if rating >= rating_lower_bound and rating <= rating_upper_bound:
                 for puzzle in puzzles:
-                    if theme in puzzle["themes"]:
+                    if theme in puzzle["themes"] and len(puzzle["moves"]) == 2: # One move-puzzles has move-length = 2, since first move indicates the prev move before the puzzle
                         candidates.append(puzzle)
-        best_match = max(candidates, key=lambda p: p["popularity"])
+        if candidates:
+            best_match = max(candidates, key=lambda p: p["popularity"])
+        else:
+            best_match = None
         print(best_match)
         print(candidates[:-10])
         print(len(candidates))
+        return best_match
 
 
 
