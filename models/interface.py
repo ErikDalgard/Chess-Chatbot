@@ -11,4 +11,6 @@ class Model(Protocol):
     def parse_image(self, image_path: str, output_type: type[T],*,
                     prompt: str | None = None, instructions: str | None = None,) -> T:
         ...
-
+    def parse_text(self, output_type: type[T],*,
+                        prompt: str, instructions: str | None = None,) -> T:
+            ...

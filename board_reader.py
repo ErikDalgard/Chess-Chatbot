@@ -113,7 +113,10 @@ def read_board(
     if image_path is None and text is None:
         raise ValueError("Provide image_path, text, or both.")
 
-    return model.parse_image(image_path, BoardReading, prompt=text, instructions=BOARD_READER_INSTRUCTIONS)
+    if image_path is None:
+        return model.parse_text(BoardReading, prompt=text, instructions=BOARD_READER_INSTRUCTIONS)
+    else:
+        return model.parse_image(image_path, BoardReading, prompt=text, instructions=BOARD_READER_INSTRUCTIONS)
 
 
 def check_reading(reading: BoardReading) -> list[str]:

@@ -78,3 +78,36 @@ class GatewayModel:
             raise ValueError("The model returned no parsed output")
 
         return response.output_parsed
+
+
+    def parse_text(
+            self,
+            output_type: type[T],
+            *,
+            prompt: str,
+            instructions: str | None = None,
+        ) -> T:
+        
+        content = [
+            {
+                "type": "input_text",
+                "text": prompt
+            },
+        ]
+
+        response = self.client.responses.parse(
+            model=self.model_name,
+            instructions=instructions,
+            input=[
+                {
+                    "role": "user",
+                    "content": content,
+                }
+            ],
+            text_format=output_type,
+        )
+
+        if response.output_parsed is None:
+            raise ValueError("The model returned no parsed output")
+
+        return response.output_parsed
