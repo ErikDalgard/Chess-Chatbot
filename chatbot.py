@@ -4,6 +4,7 @@ from chess_analysis import ChessAnalysis, corrected_turn
 from chess_instructions import SYSTEM_INSTRUCTIONS
 from models.factory import create_model
 from puzzle.puzzle_assistant import PuzzleAssistant
+from enum import Enum
 
 
 #Setting up model
@@ -16,6 +17,30 @@ IMAGE_EXTENSIONS = (".png", ".jpg", ".jpeg", ".webp")
 puzzle_assistant = PuzzleAssistant(model)
 # puzzle_assistant.test()
 
+class Mode(str, Enum):
+    CHESS_ASSISTANT = "chess_assistant"
+    PUZZLE_ASSISTANT = "puzzle_assistant"
+
+mode = Mode.CHESS_ASSISTANT
+CHESS_ASSISTANT_SESSION_ID = 1 
+PUZZLE_ASSISTANT_SESSION_ID = 2 # Use a different session for the puzzle assistant
+
+def change_mode():
+    global mode
+    if mode == Mode.PUZZLE_ASSISTANT:
+        yield "Redirecting to the general chess assistant..."
+        mode = Mode.CHESS_ASSISTANT
+        model.clear_history(PUZZLE_ASSISTANT_SESSION_ID)
+    else:
+        yield "Redirecting to the puzzle chess assistant..."
+        mode = Mode.PUZZLE_ASSISTANT
+        model.clear_history(CHESS_ASSISTANT_SESSION_ID)
+
+
+
+
+
+
 #UI input function
 def input2output(inputs, history, request:gr.Request):
     text = inputs.get("text", "")
@@ -27,32 +52,47 @@ def input2output(inputs, history, request:gr.Request):
         for f in files
     ]
     image_paths = [p for p in image_paths if p.lower().endswith(IMAGE_EXTENSIONS)]
-    
-    stream = puzzle_assistant.input2output(text, image_paths, request.session_hash)
 
-    for event in stream:
-        yield event
-    return
+    global mode
+    if mode == Mode.PUZZLE_ASSISTANT:
+        stream = puzzle_assistant.input2output(text, image_paths, PUZZLE_ASSISTANT_SESSION_ID)
+        for event in stream:
+            if event["flag"]:
+                if event["flag"] == "change_mode":
+                    yield from change_mode()
+                    yield from input2output(inputs, history, request)
+                    return
+            else:
+                yield event["content"]
+        return
+    elif mode == Mode.CHESS_ASSISTANT:
+        # Switch to puzzle assistant mode if the puzzle assistant says so and if there are no images uploaded
+        if not image_paths and puzzle_assistant.switch_to_puzzle_mode(text):
+            yield from change_mode()
+            yield from input2output(inputs, history, request)
+            return
+
+
     if image_paths:
         yield from chess_analysis.analyze_image(
-            image_paths[0], text, request.session_hash
+            image_paths[0], text, CHESS_ASSISTANT_SESSION_ID
         )
         return
 
-    if request.session_hash in chess_analysis.pending_boards:
-        yield from chess_analysis.confirm_board(text, request.session_hash)
+    if CHESS_ASSISTANT_SESSION_ID in chess_analysis.pending_boards:
+        yield from chess_analysis.confirm_board(text, CHESS_ASSISTANT_SESSION_ID)
         return
 
     side = corrected_turn(text)
     if side is not None:
-        yield from chess_analysis.correct_side(side, request.session_hash)
+        yield from chess_analysis.correct_side(side, CHESS_ASSISTANT_SESSION_ID)
         return
 
     # Normal chat
     if not text.strip():
         yield "Type a message or upload a chess board image."
         return
-    stream = model.stream(instructions=SYSTEM_INSTRUCTIONS, input_text=text, session_id=request.session_hash)
+    stream = model.stream(instructions=SYSTEM_INSTRUCTIONS, input_text=text, session_id=CHESS_ASSISTANT_SESSION_ID)
     for event in stream:
         yield event
     

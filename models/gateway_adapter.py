@@ -207,4 +207,5 @@ class GatewayModel:
         history.append({"role": "user", "content": input_text,})
         yield from self.stream_tools_from_history(instructions, session_id, tools, 1, max_depth)
        
-            
+    def clear_history(self, session_id):
+        self.chats[session_id] = []

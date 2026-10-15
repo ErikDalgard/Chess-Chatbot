@@ -6,7 +6,7 @@ import chess
 import chess.svg
 import gradio as gr
 from enum import Enum
-
+import string
 
 class Theme(str, Enum):
     NONE = "none"
@@ -62,10 +62,16 @@ class GetPuzzleArgs(BaseModel):
             description='The theme of the puzzle or "none" if no particular theme is requested.'
         )
 
+class NoArgs(BaseModel):    
+    """This tool takes no arguments."""    
+    pass
+
+
 puzzles = Puzzles(250000)
 puzzle_board = None
 display_puzzle_board = False
-
+mode_change_is_requested = False
+mode_change_is_allowed = True # This is set to false when the input contains the word puzzle, because then the mode would be switched directly back again.
 
 def get_puzzle(rating, theme):
     puzzle = puzzles.retrieve_puzzle(rating_lower_bound=rating - 100, rating_upper_bound=rating+50, theme=theme)
@@ -103,6 +109,13 @@ def display_puzzle(reply, board):
     svg = chess.svg.board(board, size=360)
     yield [gr.HTML(svg), reply]
 
+def request_mode_change():
+    global mode_change_is_requested
+    if mode_change_is_allowed:
+        mode_change_is_requested = True
+        return {"status": "successfully directed user"}
+    else:
+        return {"status": "failed to redirect user"}
 
 class PuzzleAssistant:
     def __init__(self, model):
@@ -123,23 +136,49 @@ class PuzzleAssistant:
                     "This function also displays the chess puzzle as a visual chess board to the user, so no need for you to output the fen or try to explain the actual board setup." 
                     "Please say who's turn it is, and what the last move played was."
                     "Use this tool when the user asks for a chess puzzle."
-                ))]
+                )),
+                Tool(request_mode_change, NoArgs, name="change_mode", description=(
+                                    "Redirects the user to the other chess assistant"
+                                    "Use this tool when user is NOT talking about CHESS PUZZLES anymore. "
+                                    "Use it if the user starts talking about random things, or other chess related things but that are NOT about chess puzzles"
+                                    "Returns true if the user was successfully redirected, and returns false otherwise."
+                                    "The redirection will fail if the user's prompt contains the word puzzle."
+                                ))]
 
+    def switch_to_puzzle_mode(self, text):
+        words = [word.strip(string.punctuation) for word in text.lower().split()]
+        return any(word in {"puzzle", "puzle", "pussle", "pusle", "possle", "pozzle"} for word in words)
 
+    
+    def change_mode(self):
+        global mode_change_is_requested
+        mode_change_is_requested = False
+        yield {"flag": "change_mode"}
 
     def input2output(self, text, image_paths, session_id):
         if image_paths:
-            return "change_mode"
+            yield from self.change_mode()
+            return
+
+        global mode_change_is_allowed
+        # Only allow mode change if we won't get redirected direclty back to puzzle mode again
+        mode_change_is_allowed = not self.switch_to_puzzle_mode(text)
 
         stream = self.model.stream_tools(self.instructions, text, session_id, self.tools, max_depth=2)
 
         global display_puzzle_board
+        global mode_change_is_requested
 
         for output_text in stream:
+            if mode_change_is_requested:
+                yield from self.change_mode()
+                return
+            
             if puzzle_board and display_puzzle_board:
-                yield from display_puzzle(output_text, puzzle_board)
+                
+                yield {"flag": None, "content": next(display_puzzle(output_text, puzzle_board))}
             else:
-                yield output_text
+                yield {"flag": None, "content": output_text}
 
         # Do not display the puzzle board, unless a new puzzle_board is loaded
         display_puzzle_board = False
