@@ -8,92 +8,50 @@ import gradio as gr
 from enum import Enum
 
 
-
-class WeatherArgs(BaseModel):
-    location: int = Field(
-        description="Player id (you have to ask the user of his id)"
-    )
-
-def get_rating(location: int):
-    return {
-        "rating": 10*location
-    }
-
-puzzles = Puzzles(10000)
-
-for rating, puzzles in puzzles.puzzles_by_rating.items():
-    print(len(puzzles))
-
-class WeatherArgs(BaseModel):
-    location: int = Field(
-        description="Player id (you have to ask the user of his id)"
-    )
-
-from enum import Enum
-
 class Theme(str, Enum):
     NONE = "none"
-    ENDGAME = "endgame"
-    MIDDLEGAME = "middlegame"
-    CRUSHING = "crushing"
     MATE = "mate"
-    ADVANTAGE = "advantage"
-    LONG = "long"
-    ONE_MOVE = "oneMove"
     MATE_IN_1 = "mateIn1"
-    MASTER = "master"
-    FORK = "fork"
+    MIDDLEGAME = "middlegame"
+    ENDGAME = "endgame"
     KINGSIDE_ATTACK = "kingsideAttack"
-    VERY_LONG = "veryLong"
-    SACRIFICE = "sacrifice"
-    ADVANCED_PAWN = "advancedPawn"
-    DEFENSIVE_MOVE = "defensiveMove"
-    PIN = "pin"
-    ROOK_ENDGAME = "rookEndgame"
-    DISCOVERED_ATTACK = "discoveredAttack"
+    MASTER = "master"
     OPENING = "opening"
-    DEFLECTION = "deflection"
-    QUIET_MOVE = "quietMove"
-    PAWN_ENDGAME = "pawnEndgame"
-    ATTRACTION = "attraction"
     HANGING_PIECE = "hangingPiece"
     BACK_RANK_MATE = "backRankMate"
-    EXPOSED_KING = "exposedKing"
-    PROMOTION = "promotion"
-    SKEWER = "skewer"
-    DISCOVERED_CHECK = "discoveredCheck"
+    ROOK_ENDGAME = "rookEndgame"
+    ATTACKING_F2F7 = "attackingF2F7"
+    OPERA_MATE = "operaMate"
+    PILLSBURYS_MATE = "pillsburysMate"
     QUEENSIDE_ATTACK = "queensideAttack"
+    SMOTHERED_MATE = "smotheredMate"
+    PIN = "pin"
+    QUEEN_ENDGAME = "queenEndgame"
+    EPAULETTE_MATE = "epauletteMate"
+    QUEEN_ROOK_ENDGAME = "queenRookEndgame"
+    ADVANCED_PAWN = "advancedPawn"
+    CORNER_MATE = "cornerMate"
+    DISCOVERED_CHECK = "discoveredCheck"
+    PROMOTION = "promotion"
+    DOUBLE_CHECK = "doubleCheck"
+    MORPHYS_MATE = "morphysMate"
+    BLIND_SWINE_MATE = "blindSwineMate"
+    TRIANGLE_MATE = "triangleMate"
+    ARABIAN_MATE = "arabianMate"
+    DOVETAIL_MATE = "dovetailMate"
+    BODEN_MATE = "bodenMate"
+    DOUBLE_BISHOP_MATE = "doubleBishopMate"
+    DISCOVERED_ATTACK = "discoveredAttack"
+    ANASTASIA_MATE = "anastasiaMate"
     BISHOP_ENDGAME = "bishopEndgame"
-    # CLEARANCE = "clearance"
-    # MASTER_VS_MASTER = "masterVsMaster"
-    # QUEEN_ENDGAME = "queenEndgame"
-    # INTERMEZZO = "intermezzo"
-    # TRAPPED_PIECE = "trappedPiece"
-    # OPERA_MATE = "operaMate"
-    # ZUGZWANG = "zugzwang"
-    # PILLSBURYS_MATE = "pillsburysMate"
-    # KNIGHT_ENDGAME = "knightEndgame"
-    # QUEEN_ROOK_ENDGAME = "queenRookEndgame"
-    # ATTACKING_F2F7 = "attackingF2F7"
-    # CAPTURING_DEFENDER = "capturingDefender"
-    # DOUBLE_CHECK = "doubleCheck"
-    # SMOTHERED_MATE = "smotheredMate"
-    # EPAULETTE_MATE = "epauletteMate"
-    # INTERFERENCE = "interference"
-    # X_RAY_ATTACK = "xRayAttack"
-    # EQUALITY = "equality"
-    # CORNER_MATE = "cornerMate"
-    # HOOK_MATE = "hookMate"
-    # SWALLOWSTAIL_MATE = "swallowstailMate"
-    # EN_PASSANT = "enPassant"
-    # ANASTASIA_MATE = "anastasiaMate"
-    # TRIANGLE_MATE = "triangleMate"
-    # ARABIAN_MATE = "arabianMate"
-    # COLLINEAR_MOVE = "collinearMove"
-    # MORPHYS_MATE = "morphysMate"
-    # KILL_BOX_MATE = "killBoxMate"
-    # BLIND_SWINE_MATE = "blindSwineMate"
-
+    KILL_BOX_MATE = "killBoxMate"
+    ADVANTAGE = "advantage"
+    KNIGHT_ENDGAME = "knightEndgame"
+    VUKOVIC_MATE = "vukovicMate"
+    CRUSHING = "crushing"
+    BALESTRA_MATE = "balestraMate"
+    EQUALITY = "equality"
+    PAWN_ENDGAME = "pawnEndgame"
 
 
 class GetPuzzleArgs(BaseModel):
@@ -104,9 +62,10 @@ class GetPuzzleArgs(BaseModel):
             description='The theme of the puzzle or "none" if no particular theme is requested.'
         )
 
-
+puzzles = Puzzles(250000)
 puzzle_board = None
 display_puzzle_board = False
+
 
 def get_puzzle(rating, theme):
     puzzle = puzzles.retrieve_puzzle(rating_lower_bound=rating - 100, rating_upper_bound=rating+50, theme=theme)
@@ -161,7 +120,7 @@ class PuzzleAssistant:
             Tool(get_puzzle, GetPuzzleArgs, name="get_puzzle", description=(
                     "Retrieves a chess puzzle, given a rating and a theme."
                     "If no particular theme is requested, theme could be set to 'none'"
-                    "This function also displays the chess puzzle as a visual chess board to the user, so no need for you to output the fen." 
+                    "This function also displays the chess puzzle as a visual chess board to the user, so no need for you to output the fen or try to explain the actual board setup." 
                     "Please say who's turn it is, and what the last move played was."
                     "Use this tool when the user asks for a chess puzzle."
                 ))]

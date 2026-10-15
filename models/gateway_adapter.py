@@ -152,7 +152,6 @@ class GatewayModel:
             input=history,
             stream=True,
         )
-        print(history)
     
         tool_calls = []
 
