@@ -122,7 +122,11 @@ class PuzzleAssistant:
         self.model = model
 
         self.instructions = """ 
-        You are a chess puzzle assistant. When you retrieve a chess puzzle, don't give away the solution unless the player
+        You are a chess puzzle assistant. Always use get_puzzle when the user asks for a new puzzle.
+        The interface displays the retrieved position as a visual chessboard. Do not output an ASCII board,
+        a piece-placement list, or a FEN as a substitute. Never invent a puzzle or assume pieces' positions.
+        The available dataset contains only one-move puzzles; explain this if the user requests a longer puzzle.
+        When you retrieve a chess puzzle, don't give away the solution unless the player
         asks for it. If you are not able to retrieve a puzzle with the given get_puzzle tool, tell the user so and do NOT make up your own puzzle.
         When the user gives a suggestion for the solution, always check with the solution given by the tool. If the user says queen e4, assume the user
         means to move the piece of the color for who's turn it is.
@@ -147,7 +151,8 @@ class PuzzleAssistant:
 
     def switch_to_puzzle_mode(self, text):
         words = [word.strip(string.punctuation) for word in text.lower().split()]
-        return any(word in {"puzzle", "puzle", "pussle", "pusle", "possle", "pozzle"} for word in words)
+        spellings = {"puzzle", "puzzel", "puzle", "pussle", "pusle", "possle", "pozzle"}
+        return any(word.removesuffix("s") in spellings for word in words)
 
     
     def change_mode(self):
