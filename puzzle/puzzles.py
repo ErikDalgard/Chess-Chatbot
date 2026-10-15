@@ -10,7 +10,7 @@ class Puzzles:
 
     def load_puzzles(self, n_puzzles):
         puzzles = []
-        max_iterations = 100000
+        max_iterations = 100000 
         assert(n_puzzles <= max_iterations)
 
         with open("lichess_db_puzzle.csv.zst", "rb") as compressed_file:
@@ -58,16 +58,22 @@ class Puzzles:
         for rating, puzzles in self.puzzles_by_rating.items():
             if rating >= rating_lower_bound and rating <= rating_upper_bound:
                 for puzzle in puzzles:
-                    if theme in puzzle["themes"] and len(puzzle["moves"]) == 2: # One move-puzzles has move-length = 2, since first move indicates the prev move before the puzzle
-                        candidates.append(puzzle)
+                    if len(puzzle["moves"]) == 2: # One move-puzzles has move-length = 2, since first move indicates the prev move before the puzzle
+                        if theme == "none":
+                            candidates.append(puzzle)
+                        elif theme in puzzle["themes"]:
+                            candidates.append(puzzle)
+        # if candidates:
+        #     best_match = max(candidates, key=lambda p: p["popularity"])
+        # else:
+        #     best_match = None
+        # print(best_match)
+        # print(candidates[:-10])
+        # print(len(candidates))
         if candidates:
-            best_match = max(candidates, key=lambda p: p["popularity"])
+            return random.choice(candidates)
         else:
-            best_match = None
-        print(best_match)
-        print(candidates[:-10])
-        print(len(candidates))
-        return best_match
+            return None
 
 
 

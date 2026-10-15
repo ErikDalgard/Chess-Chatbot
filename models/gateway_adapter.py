@@ -24,12 +24,9 @@ class GatewayModel:
         self.client = OpenAI(
         api_key=api_key,
         base_url='https://ai-gateway.vercel.sh/v1')
-        
-    def stream(self, instructions, input_text, session_id):
 
+    def stream_from_history(self, instructions, session_id):
         history = self.chats.setdefault(session_id, [])
-        history.append({"role": "user", "content": input_text,})
-
         #Streaming the response
         stream = self.client.responses.create(
             model=self.model_name,
@@ -37,13 +34,22 @@ class GatewayModel:
             input=history,
             stream=True
             )
-  
+      
         answer = ""
         for event in stream:
            if event.type == 'response.output_text.delta':
                 answer += event.delta
                 yield answer
         history.append({"role": "assistant", "content": answer,})
+
+
+    def stream(self, instructions, input_text, session_id):
+
+        history = self.chats.setdefault(session_id, [])
+        history.append({"role": "user", "content": input_text,})
+
+        yield from self.stream_from_history(instructions, session_id)
+        
 
     # Function to encode the image
     def encode_image(self, image_path):
@@ -193,6 +199,8 @@ class GatewayModel:
 
             if depth < max_depth:
                 yield from self.stream_tools_from_history(instructions, session_id, tools, depth + 1, max_depth)
+            else:
+                yield from self.stream_from_history(instructions, session_id)
 
 
     def stream_tools(self, instructions, input_text, session_id, tools: list[Tool], max_depth):
