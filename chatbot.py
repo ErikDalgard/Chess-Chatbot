@@ -98,7 +98,7 @@ def input2output(inputs, history, request:gr.Request):
     
 
 #Running UI
-with gr.Blocks() as demo:
+"""with gr.Blocks() as demo:
     gr.ChatInterface(input2output, 
                             multimodal = True,
                             description="",
@@ -110,4 +110,38 @@ with gr.Blocks() as demo:
                     )
 
 if __name__ == "__main__":
-    demo.launch(server_name="0.0.0.0", server_port=7860, theme=gr.themes.Soft())
+    demo.launch(server_name="0.0.0.0", server_port=7860, theme=gr.themes.Soft())"""
+
+#Running UI
+import os
+
+PAWN = os.path.join(os.path.dirname(__file__), "pawn.png")
+
+theme = gr.themes.Soft(primary_hue="emerald", neutral_hue="stone").set(
+    body_background_fill="#e6eee1",          # page background (light mode)
+    body_background_fill_dark="#18211a",     # page background (dark mode)
+    block_background_fill="#f6f9f3",         # panels, like the chat area
+    block_background_fill_dark="#222d24",
+    background_fill_primary="#f6f9f3",
+    background_fill_primary_dark="#222d24",
+)
+
+with gr.Blocks(title="Chess Coach") as demo:
+    gr.ChatInterface(
+        input2output,
+        multimodal=True,
+        title="♞ Chess Coach",
+        description="Ask about openings and strategy, play a game, or upload a screenshot of a board to get the best move explained.",
+        chatbot=gr.Chatbot(
+            height=560,
+            avatar_images=(None, PAWN),   # (user, bot)
+            placeholder="**Upload a board or ask a chess question to get started.**",
+        ),
+        examples=[
+            {"text": "Let's play a game, I'll be white", "files": []},
+            {"text": "Explain the Sicilian Defense", "files": []},
+        ],
+    )
+
+if __name__ == "__main__":
+    demo.launch(server_name="0.0.0.0", server_port=7860, theme=theme)
