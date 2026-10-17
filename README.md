@@ -47,3 +47,23 @@ docker compose exec -w /home/jovyan/work jupyter python chatbot.py
 
 Open http://localhost:7860 in your browser.
 
+
+## Repository structure
+
+| File or directory | Purpose |
+| --- | --- |
+| `chatbot.py` | Gradio interface and routing between general chat, image analysis, and puzzles. |
+| `board_reader.py` | Reads board images through the model and checks the detected piece placements. |
+| `fen_converter.py` | Converts detected pieces into a FEN position string. |
+| `chess_analysis.py` | Manages board previews, confirmation, corrections, and explanations of engine results. |
+| `analyze_fen.py` | Validates FEN positions and runs Stockfish to return evaluations and candidate moves. |
+| `chess_instructions.py` | System instructions for the general chess assistant. |
+| `models/` | Shared model interface, provider selection, and Gemini/Gateway adapters. |
+| `puzzle/puzzle_assistant.py` | Puzzle coaching, retrieval tools, and mode-switching logic. |
+| `puzzle/puzzles.py` | Loads, preprocesses, and retrieves puzzles from the dataset. |
+| `puzzles.json.zst` | Compressed puzzle dataset used by the application. |
+| `docker/Dockerfile-cpu` | Default container environment, including Stockfish and Python dependencies. |
+| `docker-compose.yml` | Container configuration, mounted project files, ports, and environment variables. |
+| `requirements.txt` | Python dependencies installed by the Docker build. |
+| `env.example` | Example environment configuration. |
+
