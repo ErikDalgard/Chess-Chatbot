@@ -98,7 +98,7 @@ def input2output(inputs, history, request:gr.Request):
     
 
 #Running UI
-with gr.Blocks() as demo:
+"""with gr.Blocks() as demo:
     gr.ChatInterface(input2output, 
                             multimodal = True,
                             description="",
@@ -110,4 +110,42 @@ with gr.Blocks() as demo:
                     )
 
 if __name__ == "__main__":
-    demo.launch(server_name="0.0.0.0", server_port=7860, theme=gr.themes.Soft())
+    demo.launch(server_name="0.0.0.0", server_port=7860, theme=gr.themes.Soft())"""
+
+#Running UI
+import os
+
+PAWN = os.path.join(os.path.dirname(__file__), "pawn.png")
+
+theme = gr.themes.Soft(primary_hue="emerald", neutral_hue="stone").set(
+    body_background_fill="#e6eee1",          # page background (light mode)
+    body_background_fill_dark="#18211a",     # page background (dark mode)
+    block_background_fill="#f6f9f3",         # panels, like the chat area
+    block_background_fill_dark="#222d24",
+    background_fill_primary="#f6f9f3",
+    background_fill_primary_dark="#222d24",
+)
+
+with gr.Blocks(title="Chess Coach") as demo:
+    gr.ChatInterface(
+        input2output,
+        multimodal=True,
+        title="♞ Chess Coach",
+        description=(
+            "Upload a board screenshot to analyze the position, "
+            "practice chess puzzles, or ask about chess concepts and strategy."
+        ),        
+        chatbot=gr.Chatbot(
+            height=560,
+            avatar_images=(None, PAWN),   # (user, bot)
+            placeholder="**Upload a board, ask for a puzzle, or explore a chess concept.**",),
+        examples=[
+            {"text": "Give me a beginner puzzle around rating 800.", "files": []},
+            {"text": "Give me a mate-in-one puzzle.", "files": []},
+            {"text": "Explain pins and forks with simple examples.", "files": []},
+            {"text": "What should I focus on in the opening?", "files": []},
+        ],
+    )
+
+if __name__ == "__main__":
+    demo.launch(server_name="0.0.0.0", server_port=7860, theme=theme)
