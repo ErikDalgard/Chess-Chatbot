@@ -131,15 +131,19 @@ with gr.Blocks(title="Chess Coach") as demo:
         input2output,
         multimodal=True,
         title="♞ Chess Coach",
-        description="Ask about openings and strategy, play a game, or upload a screenshot of a board to get the best move explained.",
+        description=(
+            "Upload a board screenshot to analyze the position, "
+            "practice chess puzzles, or ask about chess concepts and strategy."
+        ),        
         chatbot=gr.Chatbot(
             height=560,
             avatar_images=(None, PAWN),   # (user, bot)
-            placeholder="**Upload a board or ask a chess question to get started.**",
-        ),
+            placeholder="**Upload a board, ask for a puzzle, or explore a chess concept.**",),
         examples=[
-            {"text": "Let's play a game, I'll be white", "files": []},
-            {"text": "Explain the Sicilian Defense", "files": []},
+            {"text": "Give me a beginner puzzle around rating 800.", "files": []},
+            {"text": "Give me a mate-in-one puzzle.", "files": []},
+            {"text": "Explain pins and forks with simple examples.", "files": []},
+            {"text": "What should I focus on in the opening?", "files": []},
         ],
     )
 
