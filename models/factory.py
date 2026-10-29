@@ -6,8 +6,13 @@ from dotenv import load_dotenv
 load_dotenv() 
 
 def create_model() -> Model:
-    provider = os.getenv("LLM_PROVIDER", "gemini").lower()
-    model_name = os.getenv("LLM_MODEL", "gemini-3.5-flash")
+    """Create the configured LLM adapter.
+
+    Defaults to the Vercel AI Gateway with ``openai/gpt-5-mini``, which supports
+    streaming, vision, and tool calling (required for puzzle mode).
+    """
+    provider = os.getenv("LLM_PROVIDER", "gateway").lower()
+    model_name = os.getenv("LLM_MODEL", "openai/gpt-5-mini")
 
     if provider == "gateway":
         api_key = os.environ["GATEWAY_API_KEY"]

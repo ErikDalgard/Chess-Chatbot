@@ -7,3 +7,6 @@ google-genai==2.22.0
 python-chess==1.999
 openai==3.24.0
 python-dotenv==1.2.4
+zstandard>=0.23.0
+matplotlib>=3.8.0
+numpy>=1.26.0

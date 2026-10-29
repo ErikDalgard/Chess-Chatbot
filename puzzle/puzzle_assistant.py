@@ -1,3 +1,5 @@
+"""Tool-using chess puzzle coach and puzzle-mode helpers."""
+
 from puzzle.puzzles import Puzzles
 
 from pydantic import BaseModel, Field
@@ -78,7 +80,8 @@ def get_puzzle(rating, theme):
     if not puzzle:
         return "Wasn't able to retrieve a puzzle with those inputs"
     moves = puzzle["moves"]
-    assert(len(moves)==2)
+    if len(moves) != 2:
+        return "Puzzle data was invalid (expected a one-move solution)."
 
     last_move = moves[0]
     solution_move = moves[-1]
@@ -86,14 +89,12 @@ def get_puzzle(rating, theme):
     global puzzle_board
     global display_puzzle_board
 
-    # Make the first move
     puzzle_board = chess.Board(puzzle["fen"])
-    # Display the puzzle board
     display_puzzle_board = True
     move = chess.Move.from_uci(last_move)
-    if move not in puzzle_board.legal_moves:        
-        raise ValueError(f"Illegal move: {last_move}")
-    puzzle_board.push(move)  
+    if move not in puzzle_board.legal_moves:
+        return f"Puzzle data was invalid (illegal last move: {last_move})."
+    puzzle_board.push(move)
 
     return {
         "id": puzzle["id"],
@@ -118,6 +119,8 @@ def request_mode_change():
         return {"status": "failed to redirect user"}
 
 class PuzzleAssistant:
+    """Conversational puzzle coach with retrieval and mode-exit tools."""
+
     def __init__(self, model):
         self.model = model
 
@@ -142,10 +145,10 @@ class PuzzleAssistant:
                     "Use this tool when the user asks for a chess puzzle."
                 )),
                 Tool(request_mode_change, NoArgs, name="change_mode", description=(
-                                    "Redirects the user to the other chess assistant"
+                                    "Redirects the user to the other chess assistant. "
                                     "Use this tool when user is NOT talking about CHESS PUZZLES anymore. "
-                                    "Use it if the user starts talking about random things, or other chess related things but that are NOT about chess puzzles"
-                                    "Returns true if the user was successfully redirected, and returns false otherwise."
+                                    "Use it if the user starts talking about random things, or other chess related things but that are NOT about chess puzzles. "
+                                    "Returns a status object indicating whether redirection succeeded. "
                                     "The redirection will fail if the user's prompt contains the word puzzle."
                                 ))]
 
@@ -166,7 +169,7 @@ class PuzzleAssistant:
             return
 
         global mode_change_is_allowed
-        # Only allow mode change if we won't get redirected direclty back to puzzle mode again
+        # Only allow mode change if we won't get redirected directly back to puzzle mode again
         mode_change_is_allowed = not self.switch_to_puzzle_mode(text)
 
         stream = self.model.stream_tools(self.instructions, text, session_id, self.tools, max_depth=2)

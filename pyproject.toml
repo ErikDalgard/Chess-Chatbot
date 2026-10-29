@@ -17,10 +17,10 @@ dependencies = [
     "pillow==12.3.0",
     "python-chess==1.999",
     "python-dotenv>=1.2.4",
+    "zstandard>=0.25.0",
+    "matplotlib>=3.10.0",
+    "numpy>=2.0.0",
 ]
-
-[project.scripts]
-chess-chatbot = "chess_chatbot:main"
 
 [build-system]
 requires = ["uv_build>=0.12.19,<0.13.0"]

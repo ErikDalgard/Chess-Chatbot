@@ -5,7 +5,7 @@ A chess assistant with a Gradio interface for analyzing board screenshots, pract
 ## Features
 
 - **Position analysis:** Upload a board screenshot (PNG, JPG, JPEG, or WebP). The assistant reconstructs the position and displays a chessboard for you to confirm or correct before analysis. Stockfish evaluates the confirmed position and finds up to three candidate moves, which the model explains.
-- **Chess puzzles:** Request a puzzle by rating or theme, such as a beginner puzzle around rating 800 or a mate-in-one. Puzzles appear on a visual chessboard. Ask for hints, suggest a solution, or request the answer.
+- **Chess puzzles:** Request a puzzle by rating or theme, such as a beginner puzzle around rating 800 or a mate-in-one. Puzzles appear on a visual chessboard. Ask for hints, suggest a solution, or request the answer. Details: [`puzzle/README.md`](puzzle/README.md).
 - **Chess explanations:** Ask about rules, openings, tactics, and strategy, with conversational follow-up questions.
 - **Chat interface:** Streamed replies, board image uploads, and example prompts in a themed Chess Coach UI.
 
@@ -20,16 +20,16 @@ Requirements:
 - Docker with Docker Compose.
 - A `.env` file in the project root with the selected model provider and API key.
 
-The model factory reads `LLM_PROVIDER` (`gateway` or `gemini`), `LLM_MODEL`, and the corresponding `GATEWAY_API_KEY` or `GEMINI_API_KEY`. For example, configure the gateway provider with:
+The model factory reads `LLM_PROVIDER` (`gateway` or `gemini`), `LLM_MODEL`, and the corresponding `GATEWAY_API_KEY` or `GEMINI_API_KEY`. Defaults are gateway and `openai/gpt-5-mini` (needed for puzzle tool calling). Example:
 
 ```dotenv
 LLM_PROVIDER=gateway
-LLM_MODEL=your-gateway-model-id
+LLM_MODEL=openai/gpt-5-mini
 GATEWAY_API_KEY=your-api-key
 DEVICE=cpu
 ```
 
-Replace the model ID with one available through your gateway that supports image input and tool calling. 
+Use a gateway model that supports image input and tool calling. See `env.example`. 
 
 Run the following commands from the project root. Start the container:
 
@@ -58,9 +58,8 @@ Open http://localhost:7860 in your browser.
 | `chess_analysis.py` | Manages board previews, confirmation, corrections, and explanations of engine results. |
 | `analyze_fen.py` | Validates FEN positions and runs Stockfish to return evaluations and candidate moves. |
 | `chess_instructions.py` | System instructions for the general chess assistant. |
-| `models/` | Shared model interface, provider selection, and Gemini/Gateway adapters. |
-| `puzzle/puzzle_assistant.py` | Puzzle coaching, retrieval tools, and mode-switching logic. |
-| `puzzle/puzzles.py` | Loads, preprocesses, and retrieves puzzles from the dataset. |
+| `models/` | Shared model interface, provider selection, and Gemini/Gateway adapters ([`models/README.md`](models/README.md)). |
+| `puzzle/` | Puzzle assistant, corpus loader, and puzzle-specific docs ([`puzzle/README.md`](puzzle/README.md)). |
 | `puzzles.json.zst` | Compressed puzzle dataset used by the application. |
 | `docker/Dockerfile-cpu` | Default container environment, including Stockfish and Python dependencies. |
 | `docker-compose.yml` | Container configuration, mounted project files, ports, and environment variables. |

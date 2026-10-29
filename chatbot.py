@@ -15,7 +15,6 @@ chess_analysis = ChessAnalysis(model)
 IMAGE_EXTENSIONS = (".png", ".jpg", ".jpeg", ".webp")
 
 puzzle_assistant = PuzzleAssistant(model)
-# puzzle_assistant.test()
 
 class Mode(str, Enum):
     CHESS_ASSISTANT = "chess_assistant"
@@ -97,22 +96,7 @@ def input2output(inputs, history, request:gr.Request):
         yield event
     
 
-#Running UI
-"""with gr.Blocks() as demo:
-    gr.ChatInterface(input2output, 
-                            multimodal = True,
-                            description="",
-                            examples = [
-                                {"text": "Let's play a game, I'll be white", "files": []},
-                                {"text": "Explain the Sicilian Defense", "files": []},
-                            ],
-
-                    )
-
-if __name__ == "__main__":
-    demo.launch(server_name="0.0.0.0", server_port=7860, theme=gr.themes.Soft())"""
-
-#Running UI
+# Running UI
 import os
 
 PAWN = os.path.join(os.path.dirname(__file__), "pawn.png")
