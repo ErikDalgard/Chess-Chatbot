@@ -1,0 +1,12 @@
+.git
+.venv
+__pycache__
+*.pyc
+models/**
+!models/*.py
+figures
+*.tex
+.env
+puzzles.json.zst
+uv.lock
+.python-version

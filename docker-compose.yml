@@ -1,3 +1,5 @@
+name: chess-chatbot
+
 services:
   jupyter:
     env_file:
